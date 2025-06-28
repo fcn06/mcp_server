@@ -1,0 +1,33 @@
+[package]
+name = "mcp_server"
+version = "0.1.0"
+edition = "2024"
+
+# https://github.com/modelcontextprotocol/rust-sdk/tree/main/examples/servers/src
+
+[dependencies]
+rmcp= { git = "https://github.com/modelcontextprotocol/rust-sdk.git", features = ["server", "transport-sse-server", "transport-io"] }
+
+
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+anyhow = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-appender = "0.2"
+futures = "0.3"
+axum = { version = "0.8", features = ["macros"] }
+tokio-util = { version = "0.7", features = ["io", "codec"]}
+rand = { version = "0.9" }
+
+[[bin]]
+name = "main-server"
+path = "src/main-server.rs"
+
+
+[profile.dev]
+opt-level = 0
+
+[profile.release]
+opt-level = 3

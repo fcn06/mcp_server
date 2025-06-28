@@ -1,0 +1,12 @@
+# MCP Server
+
+This is a very simple crate intended for illustration and testing purposes with the `swarm` project.
+
+It provides a basic implementation of an MCP (Multi-Agent Communication Protocol) server.
+
+The server exposes two tools:
+
+*   `get_weather`: A tool to simulate fetching weather information.
+*   `get_customer_details`: A tool to simulate retrieving customer details.
+
+These tools are designed to be simple examples for agents within the `swarm` project to interact with, demonstrating the communication and tool-use capabilities within the agentic system.
