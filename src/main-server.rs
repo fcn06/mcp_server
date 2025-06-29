@@ -7,7 +7,23 @@ use tracing_subscriber::{
 mod common;
 use common::general_mcp_service::GeneralMcpService;
 
-const BIND_ADDRESS: &str = "127.0.0.1:8000";
+//const BIND_ADDRESS: &str = "127.0.0.1:8000";
+
+use clap::Parser;
+
+/// Command-line arguments for the reimbursement server
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None)]
+struct Args {
+    /// Host to bind the server to
+    #[clap(long, default_value = "127.0.0.1")]
+    host: String,
+    /// Configuration file path (TOML format)
+    #[clap(long, default_value = "8000")]
+    port: String,
+}
+
+
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -19,7 +35,13 @@ async fn main() -> anyhow::Result<()> {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    let ct = SseServer::serve(BIND_ADDRESS.parse()?)
+    // Parse command-line arguments
+    let args = Args::parse();
+
+    let bind_address= format!("{}:{}", args.host, args.port);
+    println!("Server listening on: {}", bind_address);
+
+    let ct = SseServer::serve(bind_address.parse()?)
         .await?
         .with_service(GeneralMcpService::new);
 
