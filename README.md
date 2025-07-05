@@ -10,3 +10,12 @@ The server exposes two tools:
 *   `get_customer_details`: A tool to simulate retrieving customer details.
 
 These tools are designed to be simple examples for agents within the `swarm` project to interact with, demonstrating the communication and tool-use capabilities within the agentic system.
+
+
+### **Run this simple server**
+
+Run the test MCP server that exposes these two tools
+
+```bash
+cargo run
+```
