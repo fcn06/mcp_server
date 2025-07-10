@@ -2,24 +2,40 @@ use std::sync::Arc;
 
 use rmcp::{
     Error as McpError, RoleServer, ServerHandler, const_string, model::*, schemars,
-    service::RequestContext, tool,
+    service::RequestContext, tool,  tool_handler, tool_router,
+    handler::server::{router::tool::ToolRouter, tool::Parameters},
 };
 use serde_json::json;
 use tokio::sync::Mutex;
 
 
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
+pub struct StructRequestLocation {
+    #[schemars(description = "Location for which you desire to know weather")]
+    pub location: String,
+    #[schemars(description = "Temperature unit to use. You can specify Degree Celsius or Degree Farenheit")]
+    pub unit: Option<String>,
+}
+
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
+pub struct StructRequestCustomerDetails {
+    #[schemars(description = "Give customer details from a given customer_id")]
+    pub customer_id: String,
+}
+
 
 #[derive(Clone)]
 pub struct GeneralMcpService {
-    
+    tool_router: ToolRouter<Self>,
 }
 
-#[tool(tool_box)]
+//#[tool(tool_box)]
+#[tool_router]
 impl GeneralMcpService {
     #[allow(dead_code)]
     pub fn new() -> Self {
         Self {
-            
+            tool_router: Self::tool_router(),
         }
     }
 
@@ -27,30 +43,20 @@ impl GeneralMcpService {
 
     #[tool(description = "Get the current weather in a given location")]
     async fn get_current_weather(
-        &self,
-        #[tool(param)]
-        #[schemars(description = "Location for which you desire to know weather. You can specify an Unit like Degree Celsius or Degree Farenheit")]
-        location: String,
-        #[tool(param)]
-        #[schemars(description = "Temperature unit to use")]
-        unit: Option<String>,
-    ) -> Result<CallToolResult, McpError> {
+        &self, Parameters(StructRequestLocation { location, unit }): Parameters<StructRequestLocation>) -> Result<CallToolResult, McpError> {
         let unit = unit.unwrap_or("Degree Celsius".to_string());
         let begining_string=r#""{"Temperature": "24", "unit":""#;
         let end_string=r#"","description":"Sunny"}"#;
         Ok(CallToolResult::success(vec![Content::text(
             format!("{}{}{}",begining_string,unit,end_string),
-
         )]))
     }
 
+
+
     #[tool(description = "Give customer details")]
     async fn get_customer_details(
-        &self,
-        #[tool(param)]
-        #[schemars(description = "Give customer details from a given customer_id")]
-        customer_id: String,
-    ) -> Result<CallToolResult, McpError> {
+        &self,Parameters(StructRequestCustomerDetails { customer_id }): Parameters<StructRequestCustomerDetails>) -> Result<CallToolResult, McpError> {
         Ok(CallToolResult::success(vec![Content::text(
             r#"{"Full Name": "Company A", "address": "Sunny Street"}"#,
         )]))
@@ -61,7 +67,8 @@ impl GeneralMcpService {
 }
 
 const_string!(Echo = "echo");
-#[tool(tool_box)]
+//#[tool(tool_box)]
+#[tool_handler]
 impl ServerHandler for GeneralMcpService {
     fn get_info(&self) -> ServerInfo {
         ServerInfo {
