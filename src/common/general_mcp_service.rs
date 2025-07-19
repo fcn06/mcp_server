@@ -23,6 +23,12 @@ pub struct StructRequestCustomerDetails {
     pub customer_id: String,
 }
 
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
+pub struct StructRequestUrlToScrape {
+    #[schemars(description = "The URL to scrape")]
+    pub url_to_scrape: String,
+}
+
 
 #[derive(Clone)]
 pub struct GeneralMcpService {
@@ -56,10 +62,22 @@ impl GeneralMcpService {
 
     #[tool(description = "Give customer details")]
     async fn get_customer_details(
-        &self,Parameters(StructRequestCustomerDetails { customer_id }): Parameters<StructRequestCustomerDetails>) -> Result<CallToolResult, McpError> {
+        &self,Parameters(StructRequestCustomerDetails { customer_id }): Parameters<StructRequestCustomerDetails>) 
+            -> Result<CallToolResult, McpError> {
         Ok(CallToolResult::success(vec![Content::text(
             r#"{"Full Name": "Company A", "address": "Sunny Street"}"#,
         )]))
+    }
+
+    #[tool(description = "Scrapes a given URL using Jina AI's web scraping service.")]
+    async fn scrape_url(
+        &self, Parameters(StructRequestUrlToScrape { url_to_scrape }): Parameters<StructRequestUrlToScrape>
+    ) -> Result<CallToolResult, McpError> {
+        let jina_ai_url = format!("https://r.jina.ai/{}", url_to_scrape);
+        let client = reqwest::Client::new();
+        let response = client.get(&jina_ai_url).send().await.map_err(|e| McpError::invalid_request(e.to_string(),Some(json!({"messages": url_to_scrape.to_string()}))))?;
+        let body = response.text().await.map_err(|e| McpError::invalid_request(e.to_string(),Some(json!({"messages": url_to_scrape.to_string()}))))?;
+        Ok(CallToolResult::success(vec![Content::text(body)]))
     }
 
 
@@ -79,7 +97,7 @@ impl ServerHandler for GeneralMcpService {
                 .enable_tools()
                 .build(),
             server_info: Implementation::from_build_env(),
-            instructions: Some("This server provides  a function 'get_current_weather' to retrieve weather from a specific location,  'get_customer_details' to get info about a customer".to_string()),
+            instructions: Some("This server provides  a function 'get_current_weather' to retrieve weather from a specific location,  'get_customer_details' to get info about a customer, and 'scrape_url' to scrape a given URL.".to_string()),
         }
     }
 

@@ -7,7 +7,6 @@ use tracing_subscriber::{
 mod common;
 use common::general_mcp_service::GeneralMcpService;
 
-//const BIND_ADDRESS: &str = "127.0.0.1:8000";
 
 use clap::Parser;
 
